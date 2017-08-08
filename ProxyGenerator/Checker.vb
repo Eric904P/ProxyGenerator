@@ -11,7 +11,6 @@ Public Class Checker
     ReadOnly _dC As New Dictionary(Of String, Thread)()
     ReadOnly _working As List(Of String) = New List(Of String)
     Private _scrapedTotal As Integer = 0
-    Event StepUi(ByVal sender As System.Object)
 
     Public Sub New()
 
@@ -27,7 +26,6 @@ Public Class Checker
                 _dC(thrdIndexC.ToString).Start()
                 _thrdCntC = _thrdCntC + 1
                 thrdIndexC = thrdIndexC + 1
-                RaiseEvent stepUI(Me)
             End If
         End While
         Return True

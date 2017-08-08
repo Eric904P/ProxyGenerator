@@ -15,7 +15,6 @@ Public Class Scraper
     ReadOnly _listLock As Object = New Object
     ReadOnly _d As New Dictionary(Of String, Thread)()
     Private _sourceTotal As Integer = 0
-    Event StepUi(ByVal sender As System.Object)
 
     Function ScrapeHerder() As Boolean
         _sourceTotal = _sources.Count
@@ -27,7 +26,6 @@ Public Class Scraper
                 _d(thrdIndex.ToString).Start()
                 _thrdCnt = _thrdCnt + 1
                 thrdIndex = thrdIndex + 1
-                RaiseEvent stepUI(Me)
             End If
         End While
         Return True
