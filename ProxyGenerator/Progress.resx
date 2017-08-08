@@ -117,23 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="v2_Threading_SaveFile_txt_files____txt____txt" xml:space="preserve">
-    <value>txt files (*.txt)|*.txt</value>
-  </data>
-  <data name="v2_Threading_SaveFile_Please_wait_until_program_is_finished_" xml:space="preserve">
-    <value>Please wait until program is finished.</value>
-  </data>
-  <data name="Judge" xml:space="preserve">
-    <value>http://azenv.net</value>
-  </data>
-  <data name="v2_Threading_ScrapeLink__proxies_found_at_" xml:space="preserve">
-    <value> proxies found at </value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="psrc" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\psrc.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="WebSrc" xml:space="preserve">
-    <value>https://pastebin.com/raw/KhiFJE4m</value>
-  </data>
 </root>
