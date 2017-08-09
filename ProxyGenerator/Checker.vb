@@ -38,7 +38,7 @@ Public Class Checker
                 toCheck = Scraper.Scraped.Item(0)
                 Scraper.Scraped.RemoveAt(0)
             End SyncLock
-            If CheckProxy(toCheck) Then
+            If CheckProxy(toCheck) and Not _working.contains(toCheck) Then
                 _working.Add(toCheck)
                 Console.WriteLine(toCheck)
             End If
