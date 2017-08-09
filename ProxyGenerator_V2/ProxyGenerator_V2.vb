@@ -11,22 +11,33 @@ Public Class ProxyGenerator_V2
     Private _maxThrdCheck = TrackBar2.Value
     Private _scrapedTotal = 0
     Private _sourceTotal = 0
-    Private _sources = New List(Of String)
-    Private _scraped = New List(Of String)
-    Private _working = New List(Of String)
-    Private _noResult = New List(Of String)
+    Private _sources As List(Of String) = New List(Of String)
+    Private _scraped As List(Of String) = New List(Of String)
+    Private _working As List(Of String) = New List(Of String)
+    Private _hasResult As List(Of String) = New List(Of String)
+    Private _noResult As List(Of String) = New List(Of String)
     Private _listLock = New Object
     Private _dictScrape = New Dictionary(Of String, Thread)() 
     Private _dictCheck = New Dictionary(Of String, Thread)()
+    Private Running As Boolean = False
+    Private Paused As Boolean = False
+
+    delegate sub EventHandler()
     Event ProxyWorking
     Event SourceFound
-    Event ProxyChecked
+    Event ProxyChecked As EventHandler
+    Event SourceScraped As EventHandler
+
 
     'SCRAPER
     Function ScrapeHerder() As Boolean
+        AddHandler SourceScraped, New EventHandler(AddressOf StepPB1)
         _sourceTotal = _sources.Count
         Dim thrdIndex = 1
-        While _sources.Count > 0
+        While _sources.Any() And Running
+            While Paused
+                
+            End While
             If _thrdCntScrape <= _maxThrdScrape Then
                 _dictScrape(thrdIndex.ToString) = New Thread(AddressOf ScrapeTask)
                 _dictScrape(thrdIndex.ToString).IsBackground = True
@@ -39,7 +50,7 @@ Public Class ProxyGenerator_V2
     End Function
 
     Private Sub ScrapeTask()
-        If _sources.Count > 0 Then
+        If _sources.Any() Then
             Dim toScrape As String
             SyncLock _listLock
                 toScrape = _sources.Item(0)
@@ -48,31 +59,25 @@ Public Class ProxyGenerator_V2
             _scraped.AddRange(ScrapeLink(toScrape).Distinct().ToList())
             _thrdCntScrape = _thrdCntScrape - 1
         End If
+        RaiseEvent(SourceScraped)
     End Sub
 
     'scrapes a given link for proxies
     Private Function ScrapeLink(link As String) As List(Of String)
         Dim proxies = New List(Of String)
-        Dim temp As String
         Try 'gets the entire web page as a string
             Dim r As HttpWebRequest = HttpWebRequest.Create(link)
-            r.UserAgent =
-                "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"
+            r.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"
             r.Timeout = 15000
-            Dim re As HttpWebResponse = r.GetResponse()
-            Dim rs As Stream = re.GetResponseStream
-            Using sr As New StreamReader(rs)
-                temp = sr.ReadToEnd()
+            Using sr As New StreamReader(r.GetResponse().GetResponseStream())
+                proxies = ExtractProx(sr.ReadToEnd())
             End Using
-            Dim src = temp
-            rs.Dispose()
-            rs.Close()
             r.Abort()
-            'uses extractProx method to find all proxies on the webpage
-            proxies = ExtractProx(src)
-
-            If proxies.Count = 0 Then
-                
+            If proxies.Any() Then
+                _hasResult.Add(link)
+                RaiseEvent(SourceFound)
+            Else
+                _noResult.Add(link)
             End If
         Catch ex As Exception
 
@@ -114,9 +119,13 @@ Public Class ProxyGenerator_V2
 
     'CHECKER
     Function CheckHerder() As Boolean
+        AddHandler ProxyChecked, New EventHandler(AddressOf StepPB2)
         _scrapedTotal = _scraped.Count
         Dim thrdIndexC = 1
-        While _scraped.Count > 0
+        While _scraped.Any() and Running
+            While Paused
+
+            End While
             If _thrdCntCheck <= _maxThrdCheck Then
                 _dictCheck(thrdIndexC.ToString) = New Thread(AddressOf CheckTask)
                 _dictCheck(thrdIndexC.ToString).IsBackground = True
@@ -129,7 +138,7 @@ Public Class ProxyGenerator_V2
     End Function
 
     Private Sub CheckTask()
-        If _scraped.Count > 0 Then
+        If _scraped.Any() Then
             Dim toCheck As String
             SyncLock _listLock
                 toCheck = _scraped.Item(0)
@@ -137,10 +146,11 @@ Public Class ProxyGenerator_V2
             End SyncLock
             If CheckProxy(toCheck) and Not _working.contains(toCheck) Then
                 _working.Add(toCheck)
-                Console.WriteLine(toCheck)
+                RaiseEvent(ProxyWorking)
             End If
             _thrdCntCheck = _thrdCntCheck - 1
         End If
+        RaiseEvent(ProxyChecked)
     End Sub
 
     'test single proxy
@@ -204,35 +214,167 @@ Public Class ProxyGenerator_V2
 
         return tempList
     End Function
+
+    Sub CopyFile(copyL As List(Of String))
+        Dim clip As String = String.Empty
+        If copyL.Any() Then
+            clip = String.Join(vbNewLine, copyL.ToArray())
+            Clipboard.SetText(clip)
+            MessageBox.Show("Copied!")
+        Else
+            MessageBox.Show("Nothing to copy!")
+        End If
+    End Sub
     'END MISC FUNCTIONS
 
     'EVENT HANDLING
+    'Scraper Thread Trackbar
     Private Sub TrackBar1_Scroll(sender As Object, e As EventArgs) Handles TrackBar1.Scroll
         _maxThrdScrape = TrackBar1.Value
         NumericUpDown1.Value = TrackBar1.Value
     End Sub
 
+    'Checker Thread Trackbar
     Private Sub TrackBar2_Scroll(sender As Object, e As EventArgs) Handles TrackBar2.Scroll
         _maxThrdCheck = TrackBar2.Value
         NumericUpDown2.Value = TrackBar2.Value
     End Sub
 
+    'Scraper Threads
     Private Sub NumericUpDown1_ValueChanged(sender As Object, e As EventArgs) Handles NumericUpDown1.ValueChanged
         _maxThrdScrape = NumericUpDown1.Value
         TrackBar1.Value = NumericUpDown1.Value
     End Sub
 
+    'Checker Threads
     Private Sub NumericUpDown2_ValueChanged(sender As Object, e As EventArgs) Handles NumericUpDown2.ValueChanged
         _maxThrdCheck = NumericUpDown2.Value
         TrackBar2.Value = NumericUpDown2.Value
     End Sub
 
+    'Save Scraped
     Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
         SaveFile(_scraped)
     End Sub
 
+    'Save Working
     Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
         SaveFile(_working)
     End Sub
+
+    'Load Custom Scrape
+    Private Sub Button13_Click(sender As Object, e As EventArgs) Handles Button13.Click
+        _sources = OpenFile()
+        MessageBox.Show(_sources.Count + "sources loaded!")
+    End Sub
+
+    'Save Custom Scrape
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        If _noResult.Any() Or _hasResult.Any() Then
+            If _hasResult.Any() and CheckBox3.Checked Then
+                SaveFile(_hasResult)
+            Else 
+                SaveFile(_noResult.Concat(_hasResult))
+            End If
+        Else
+            MessageBox.Show("Nothing to save!")
+        End If
+    End Sub
+
+    'Copy Scraped
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        CopyFile(_scraped)
+    End Sub
+
+    'Load Custom Checker
+    Private Sub Button12_Click(sender As Object, e As EventArgs) Handles Button12.Click
+        _scraped = OpenFile()
+        MessageBox.Show(_scraped.Count + "proxies loaded!")
+    End Sub
+
+    'Save Custom Checker
+    Private Sub Button10_Click(sender As Object, e As EventArgs) Handles Button10.Click
+        If _scraped.Any() Then
+            SaveFile(_scraped)
+        Else 
+            MessageBox.Show("Nothing to save!")
+        End If
+    End Sub
+
+    'Copy Working Checker
+    Private Sub Button9_Click(sender As Object, e As EventArgs) Handles Button9.Click
+        CopyFile(_working)
+    End Sub
+
+    'Start Checker
+    Private Sub Button11_Click(sender As Object, e As EventArgs) Handles Button11.Click
+        If Not CheckBox2.Checked And Not _scraped.Any() Then
+            MessageBox.Show("Please load proxies to check first!")
+            Return
+        End If
+        CheckHerder()
+    End Sub
+
+    'Start Scraper
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        If CheckBox1.Checked Then
+            LoadSrc()
+        Else
+            If Not _sources.Any() Then
+                MessageBox.Show("Please either use inbuilt sources or provide your own.")
+                Return
+            End If
+        End If
+        ScrapeHerder()
+    End Sub
+
+    'QuickStart
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        If Not Paused Then
+            LoadSrc()
+            Running = True
+            If ScrapeHerder() Then
+                CheckHerder()
+            End If
+            While _thrdCntCheck > 0 And _thrdCntScrape > 0 
+
+            End While
+            MessageBox.Show("Finished! Saving output...")
+            SaveFile(_working)
+        Else 
+            Paused = False
+        End If
+    End Sub
+
+    'Pause
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Paused = True
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Running = False
+        If Paused Then
+            Paused = False
+        End If
+        While _thrdCntCheck > 0 And _thrdCntScrape > 0 
+
+        End While
+        MessageBox.Show("Program terminated!")
+    End Sub
     'END EVENT HANDLING
+
+    'PROGRESS BAR EVENTS
+    'Scraper
+    Sub StepPB1()
+        ProgressBar2.Value = Math.Round((1-(_sources.Count/_sourceTotal))*100)
+        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    End Sub
+
+    Sub StepPB2()
+        ProgressBar1.Value = Math.Round((1-(_scraped.Count/_scrapedTotal))*100)
+        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    End Sub
+
+    'END PROGRESS BAR EVENTS
+
 End Class

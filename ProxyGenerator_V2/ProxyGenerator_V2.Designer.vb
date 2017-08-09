@@ -31,6 +31,8 @@ Partial Class ProxyGenerator_V2
         Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.TabControl1 = New System.Windows.Forms.TabControl()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
+        Me.CheckBox3 = New System.Windows.Forms.CheckBox()
+        Me.Button13 = New System.Windows.Forms.Button()
         Me.Button7 = New System.Windows.Forms.Button()
         Me.NumericUpDown1 = New System.Windows.Forms.NumericUpDown()
         Me.Label3 = New System.Windows.Forms.Label()
@@ -38,6 +40,7 @@ Partial Class ProxyGenerator_V2
         Me.Button6 = New System.Windows.Forms.Button()
         Me.Button5 = New System.Windows.Forms.Button()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
+        Me.Button12 = New System.Windows.Forms.Button()
         Me.Button8 = New System.Windows.Forms.Button()
         Me.NumericUpDown2 = New System.Windows.Forms.NumericUpDown()
         Me.Label4 = New System.Windows.Forms.Label()
@@ -49,9 +52,6 @@ Partial Class ProxyGenerator_V2
         Me.Label5 = New System.Windows.Forms.Label()
         Me.ProgressBar3 = New System.Windows.Forms.ProgressBar()
         Me.ProgressBar1 = New System.Windows.Forms.ProgressBar()
-        Me.Button12 = New System.Windows.Forms.Button()
-        Me.Button13 = New System.Windows.Forms.Button()
-        Me.CheckBox3 = New System.Windows.Forms.CheckBox()
         CType(Me.TrackBar1,System.ComponentModel.ISupportInitialize).BeginInit
         Me.TabControl1.SuspendLayout
         Me.TabPage1.SuspendLayout
@@ -158,6 +158,25 @@ Partial Class ProxyGenerator_V2
         Me.TabPage1.TabIndex = 0
         Me.TabPage1.Text = "Scraper"
         '
+        'CheckBox3
+        '
+        Me.CheckBox3.AutoSize = true
+        Me.CheckBox3.Location = New System.Drawing.Point(134, 80)
+        Me.CheckBox3.Name = "CheckBox3"
+        Me.CheckBox3.Size = New System.Drawing.Size(128, 17)
+        Me.CheckBox3.TabIndex = 19
+        Me.CheckBox3.Text = "Save only with results"
+        Me.CheckBox3.UseVisualStyleBackColor = true
+        '
+        'Button13
+        '
+        Me.Button13.Location = New System.Drawing.Point(6, 103)
+        Me.Button13.Name = "Button13"
+        Me.Button13.Size = New System.Drawing.Size(119, 23)
+        Me.Button13.TabIndex = 18
+        Me.Button13.Text = "Load Custom"
+        Me.Button13.UseVisualStyleBackColor = true
+        '
         'Button7
         '
         Me.Button7.Location = New System.Drawing.Point(134, 191)
@@ -231,6 +250,15 @@ Partial Class ProxyGenerator_V2
         Me.TabPage2.Size = New System.Drawing.Size(264, 220)
         Me.TabPage2.TabIndex = 1
         Me.TabPage2.Text = "Checker"
+        '
+        'Button12
+        '
+        Me.Button12.Location = New System.Drawing.Point(6, 103)
+        Me.Button12.Name = "Button12"
+        Me.Button12.Size = New System.Drawing.Size(119, 23)
+        Me.Button12.TabIndex = 28
+        Me.Button12.Text = "Load Custom"
+        Me.Button12.UseVisualStyleBackColor = true
         '
         'Button8
         '
@@ -329,34 +357,6 @@ Partial Class ProxyGenerator_V2
         Me.ProgressBar1.Name = "ProgressBar1"
         Me.ProgressBar1.Size = New System.Drawing.Size(264, 23)
         Me.ProgressBar1.TabIndex = 13
-        '
-        'Button12
-        '
-        Me.Button12.Location = New System.Drawing.Point(6, 103)
-        Me.Button12.Name = "Button12"
-        Me.Button12.Size = New System.Drawing.Size(119, 23)
-        Me.Button12.TabIndex = 28
-        Me.Button12.Text = "Load Custom"
-        Me.Button12.UseVisualStyleBackColor = true
-        '
-        'Button13
-        '
-        Me.Button13.Location = New System.Drawing.Point(6, 103)
-        Me.Button13.Name = "Button13"
-        Me.Button13.Size = New System.Drawing.Size(119, 23)
-        Me.Button13.TabIndex = 18
-        Me.Button13.Text = "Load Custom"
-        Me.Button13.UseVisualStyleBackColor = true
-        '
-        'CheckBox3
-        '
-        Me.CheckBox3.AutoSize = true
-        Me.CheckBox3.Location = New System.Drawing.Point(134, 80)
-        Me.CheckBox3.Name = "CheckBox3"
-        Me.CheckBox3.Size = New System.Drawing.Size(123, 17)
-        Me.CheckBox3.TabIndex = 19
-        Me.CheckBox3.Text = "Show with no results"
-        Me.CheckBox3.UseVisualStyleBackColor = true
         '
         'ProxyGenerator_V2
         '
