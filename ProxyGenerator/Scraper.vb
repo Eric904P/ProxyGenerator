@@ -5,9 +5,6 @@ Imports System.Threading
 Imports ProxyGenerator.My.Resources
 
 Public Class Scraper
-    Public Sub New()
-    End Sub
-
     Dim _sources As List(Of String) = New List(Of String)
     Public Shared Scraped As List(Of String) = New List(Of String)
     Dim _thrdCnt As Integer = 0
@@ -15,12 +12,35 @@ Public Class Scraper
     ReadOnly _listLock As Object = New Object
     ReadOnly _d As New Dictionary(Of String, Thread)()
     Private _sourceTotal As Integer = 0
+    Private _sourceScraped As Integer = 0
     Private _fileIndex = 0
     Private _fileLock As Object = New Object
+    Dim _lineIndex As Integer = 0
+    Dim _fileManager As Thread
 
+    'constructor
+    Public Sub New()
+
+    End Sub
+
+    'thread manager
     Function ScrapeHerder() As Boolean
+        Console.SetCursorPosition(left:=0, top:=0)
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("                                                                                ")
+        Console.WriteLine("................................................................................")
+        Console.SetCursorPosition(0, 7)
+        Console.CursorSize = 100
         _sourceTotal = _sources.Count
         Dim thrdIndex = 1
+        _fileManager = New Thread(AddressOf ScrapeBuffer)
+        _fileManager.IsBackground = True
+        _fileManager.Start()
         While _sources.Count > 0
             If _thrdCnt <= _thrdMax Then
                 _d(thrdIndex.ToString) = New Thread(AddressOf ScrapeTask)
@@ -34,6 +54,7 @@ Public Class Scraper
         Return True
     End Function
 
+    'action performed by each thread
     Private Sub ScrapeTask()
         If _sources.Count > 0 Then
             Dim toScrape As String
@@ -41,7 +62,7 @@ Public Class Scraper
                 toScrape = _sources.Item(0)
                 _sources.RemoveAt(0)
             End SyncLock
-            SaveScraped(ScrapeLink(toScrape).Distinct().ToList())
+            Scraped.AddRange(ScrapeLink(toScrape).Distinct().ToList())
             _thrdCnt = _thrdCnt - 1
         End If
     End Sub
@@ -68,7 +89,22 @@ Public Class Scraper
             proxies = ExtractProx(src)
 
             If proxies.Count > 0 Then
-                Console.WriteLine(proxies.Count & v2_Threading_ScrapeLink__proxies_found_at_ & link)
+                'Console.WriteLine(proxies.Count & v2_Threading_ScrapeLink__proxies_found_at_ & link)
+                'Console.Write(".")
+                _sourceScraped = _sourceScraped + proxies.Count()
+                Console.SetCursorPosition(left := Console.CursorLeft + 1, top := 7)
+                If Console.CursorLeft > 79 Then 
+                    ''Console.Clear()
+                    'Console.SetCursorPosition(left := 0, top := 0)
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+                    'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    'Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    Console.CursorLeft = 0
+                    Console.CursorTop = 7
+                End If
             End If
         Catch ex As Exception
 
@@ -107,31 +143,31 @@ Public Class Scraper
         _sources.RemoveAt(0)
     End Sub
 
+    'public source load method
     Public Sub Load()
         LoadSrc()
     End Sub
 
-    Private Sub SaveScraped(scrp As List(Of String))
-        Dim TmpPath As String = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
-        Dim maxSize As Long = 100000
-        SyncLock _fileLock
-            For Each s As String in scrp
-                Try
-                    If (FileLen(TmpPath) > maxSize) Then
-                    'If (File.ReadAllLines(TmpPath).Length >= 2500) Then
-                    _fileIndex = _fileIndex + 1
-                    TmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
-                End If
-                Catch Ex as Exception
-                    'File not created yet
-                End Try
-                Using SW = New StreamWriter(TmpPath, true)
-                    SW.WriteLine(s)
-                End Using
-            Next s        
-        End SyncLock
+    'creates files 10000 lines long
+    Private Sub ScrapeBuffer()
+        Dim tmpPath As String = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
+        While _thrdCnt > 0
+            If Scraped.Count > 10000 Then
+                File.AppendAllLines(tmpPath, Scraped.GetRange(0, 10000))
+                _fileIndex = _fileIndex + 1
+                tmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.ToString()
+                Scraped.RemoveRange(0, 10000)
+            End If
+        End While
+        If Scraped.Count > 0 And Scraped.Count < 10000 Then
+            File.AppendAllLines(tmpPath, Scraped)
+            _fileIndex = _fileIndex + 1
+            tmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.ToString()
+            scraped.Clear()
+        End If
     End Sub
 
+    'rejoins the split files
     Public Shared Function LoadScraped(bool as Boolean) As List(Of String)
         Dim scrape As List(Of String) = New List(Of String)
         For Each f As String In Directory.GetFiles(Path.GetTempPath())
@@ -145,22 +181,5 @@ Public Class Scraper
             End If 
         Next
         Return scrape
-    End Function
-
-
-    Public Function ReturnThreadCount() As Integer
-        Return _thrdCnt
-    End Function
-
-    Public Function ReturnSourceCount() As Integer
-        Return _sourceTotal
-    End Function
-
-    Public Function ReturnScrapedCount() As Integer
-        Return (_sourceTotal - _sources.Count)
-    End Function
-
-    Public Function ReturnPercent() As Double
-        Return ((_sourceTotal - _sources.Count) / _sourceTotal)
     End Function
 End Class

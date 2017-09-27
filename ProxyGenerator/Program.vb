@@ -6,7 +6,6 @@ Imports ProxyGenerator.My.Resources
 Module Program
     ReadOnly Scraper As New Scraper
     ReadOnly Checker As New Checker
-    'Dim Progress As Progress
 
     'Save dialogue
     Sub SaveFile(tempL As List(Of String))
@@ -59,6 +58,17 @@ Module Program
     'main function
     Sub Main()
         SetConsoleCtrlHandler(New HandlerRoutine(AddressOf ControlHandler), True)
+
+        Console.WindowWidth = 81
+        Console.SetCursorPosition(left := 0, top := 0)
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("- - - - - - - - - - - - - - - -PRESS ENTER TO START- - - - - - - - - - - - - - -")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.ReadKey()
+
 
         Scraper.Load()
         If Scraper.ScrapeHerder() Then

@@ -4,24 +4,42 @@ Imports System.Threading
 Imports ProxyGenerator.My.Resources
 
 Public Class Checker
-    '///////////////START OF CHECKER BLOCK/////////////////
     Dim _thrdCntC As Integer = 0
     ReadOnly _thrdMaxC As Integer = 50
     ReadOnly _listLockC As Object = New Object
     ReadOnly _dC As New Dictionary(Of String, Thread)()
-    'ReadOnly _working As List(Of String) = New List(Of String)
     Private _scrapedTotal As Integer = 0
     Private _fileIndex As Integer = 0
+    Private _workingCount As Integer = 0
     Private _scraped = Scraper.LoadScraped(true)
     Private _fileLock As Object = New Object()
+    Dim _lineIndex As Integer = 0
+    Private _working As List(Of String) = New List(Of String)
+    Dim _fileManager As Thread 
 
+    'constructor
     Public Sub New()
 
     End Sub
 
+    'thread manager
     Function CheckHerder() As Boolean
+        Console.SetCursorPosition(left := 0, top := 0)
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("- - - - - - - - - - - - - - - -CHECKING PLEASE WAIT- - - - - - - - - - - - - - -")
+        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine("                                                                                ")
+        Console.WriteLine("................................................................................")
+        Console.SetCursorPosition(0, 7)
+        Console.CursorSize = 100
         _scrapedTotal = _scraped.Count
         Dim thrdIndexC = 1
+        _fileManager = New Thread(AddressOf CheckedBuffer)
+        _fileManager.IsBackground = True
+        _fileManager.Start()
         While _scraped.Count > 0
             If _thrdCntC <= _thrdMaxC Then
                 _dC(thrdIndexC.ToString) = New Thread(AddressOf CheckTask)
@@ -35,6 +53,7 @@ Public Class Checker
         Return True
     End Function
 
+    'each thread does this action
     Private Sub CheckTask()
         If _scraped.Count > 0 Then
             Dim toCheck As String
@@ -43,9 +62,22 @@ Public Class Checker
                 _scraped.RemoveAt(0)
             End SyncLock
             If CheckProxy(toCheck) Then
-                '_working.Add(toCheck)
-                SaveChecked(toCheck)
-                Console.WriteLine(toCheck)
+                _working.Add(toCheck)
+                _workingCount = _workingCount + 1
+                'Console.WriteLine(toCheck)
+                Console.SetCursorPosition(left := Console.CursorLeft + 1, top := 7)
+                If Console.CursorLeft > 79 Then 
+                    ''Console.Clear()
+                    'Console.SetCursorPosition(left := 0, top := 0)
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+                    'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    'Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
+                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    Console.CursorLeft = 0
+                    Console.CursorTop = 7
+                End If
             End If
             _thrdCntC = _thrdCntC - 1
         End If
@@ -72,25 +104,26 @@ Public Class Checker
         Return False
     End Function
 
-    Private Sub SaveChecked(chk As String)
-        Dim TmpPath As String = Path.GetTempPath() + "ProxyGenCheck_" + _fileIndex.toString()
-        Dim maxSize As Long = 100000
-        SyncLock _fileLock
-            Try
-                If (FileLen(TmpPath) > maxSize) Then
-                'If (File.ReadAllLines(TmpPath).Length > 2500) Then
+    'splits working proxy output into 2500 line files
+    Private Sub CheckedBuffer()
+        Dim tmpPath As String = Path.GetTempPath() + "ProxyGenCheck_" + _fileIndex.toString()
+        While _thrdCntC > 0
+            If _working.Count > 2500 Then
+                File.AppendAllLines(tmpPath, _working.GetRange(0, 2500))
                 _fileIndex = _fileIndex + 1
-                TmpPath = Path.GetTempPath() + "ProxyGenCheck_" + _fileIndex.toString()
+                tmpPath = Path.GetTempPath() + "ProxyGenCheck_" + _fileIndex.ToString()
+                _working.RemoveRange(0, 2500)
             End If
-            Catch Ex as Exception
-                'File not created yet
-            End Try
-            Using SW = New StreamWriter(TmpPath, true)
-                    SW.WriteLine(chk)
-            End Using
-        End SyncLock
+        End While
+        If _working.Count > 0 And _working.Count < 2500 Then
+            File.AppendAllLines(tmpPath, _working)
+            _fileIndex = _fileIndex + 1
+            tmpPath = Path.GetTempPath() + "ProxyGenCheck_" + _fileIndex.ToString()
+            _working.Clear()
+        End If
     End Sub
 
+    'rejoins split files for saving
     Public Function LoadChecked(bool As Boolean) As List(Of String)
         Dim checked As List(Of String) = New List(Of String)
         For Each f As String In Directory.GetFiles(Path.GetTempPath())
@@ -104,25 +137,5 @@ Public Class Checker
             End If 
         Next
         Return checked
-    End Function
-
-    'Public Function ReturnWorking() As List(Of String)
-    '    Return _working
-    'End Function
-
-    Public Function ReturnThreadCount() As Integer
-        Return _thrdCntC
-    End Function
-
-    Public Function ReturnPercent() As Double
-        Return ((_scrapedTotal - _scraped.Count) / _scrapedTotal)
-    End Function
-
-    Public Function ReturnCheckedCount() As Integer
-        Return (_scrapedTotal - _scraped.Count)
-    End Function
-
-    Public Function ReturnScrapedTotal() As Integer
-        Return _scrapedTotal
     End Function
 End Class
