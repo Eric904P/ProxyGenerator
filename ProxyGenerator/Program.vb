@@ -28,12 +28,42 @@ Module Program
         End If
     End Sub
 
+    'Deletes files on close
+    Public Declare Auto Function SetConsoleCtrlHandler Lib "kernel32.dll" (ByVal Handler As HandlerRoutine, ByVal Add As Boolean) As Boolean
+
+    Public Delegate Function HandlerRoutine(ByVal CtrlType As CtrlTypes) As Boolean
+
+    Public Enum CtrlTypes
+        CTRL_C_EVENT = 0
+        CTRL_BREAK_EVENT
+        CTRL_CLOSE_EVENT
+        CTRL_LOGOFF_EVENT = 5
+        CTRL_SHUTDOWN_EVENT
+    End Enum
+
+    'Handles window close event
+    Public Function ControlHandler(ByVal ctrlType As CtrlTypes) As Boolean
+        If ctrlType = CtrlTypes.CTRL_CLOSE_EVENT Then
+            Dim FileList As String() = Directory.GetFiles(Path.GetTempPath())
+            For Each f as String in FileList
+                If f.Contains("ProxyGen") Then
+                    File.Delete(f)
+                    Console.WriteLine("DELETED" + f)
+                End If 
+            Next
+            Return True
+        End If
+        Return False
+    End Function
+
+    'main function
     Sub Main()
-        'Progress = New Progress()
+        SetConsoleCtrlHandler(New HandlerRoutine(AddressOf ControlHandler), True)
+
         Scraper.Load()
         If Scraper.ScrapeHerder() Then
             If Checker.CheckHerder() Then
-                SaveFile(Checker.ReturnWorking())
+                SaveFile(Checker.LoadChecked(true))
             End If
         End If
     End Sub

@@ -6,9 +6,9 @@ Imports ProxyGenerator_V2.My.Resources
 
 Public Class ProxyGenerator_V2
     Private _thrdCntScrape = 0
-    Private _maxThrdScrape = TrackBar1.Value
+    Private _maxThrdScrape As Integer
     Private _thrdCntCheck = 0
-    Private _maxThrdCheck = TrackBar2.Value
+    Private _maxThrdCheck As Integer
     Private _scrapedTotal = 0
     Private _sourceTotal = 0
     Private _sources As List(Of String) = New List(Of String)
@@ -17,26 +17,30 @@ Public Class ProxyGenerator_V2
     Private _hasResult As List(Of String) = New List(Of String)
     Private _noResult As List(Of String) = New List(Of String)
     Private _listLock = New Object
-    Private _dictScrape = New Dictionary(Of String, Thread)() 
+    Private _dictScrape = New Dictionary(Of String, Thread)()
     Private _dictCheck = New Dictionary(Of String, Thread)()
-    Private Running As Boolean = False
-    Private Paused As Boolean = False
+    Private _running As Boolean = False
+    Private _paused As Boolean = False
 
-    delegate sub EventHandler()
-    Event ProxyWorking
-    Event SourceFound
-    Event ProxyChecked As EventHandler
-    Event SourceScraped As EventHandler
+    'delegate sub EventHandler()
+    Event ProxyChecked() 'As EventHandler 'ByVal sender As System.Object
+    Event SourceScraped() 'As EventHandler 'ByVal sender As System.Object
 
+    Public Sub New()
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        ' Add any initialization after the InitializeComponent() call.
+    End Sub
 
     'SCRAPER
     Function ScrapeHerder() As Boolean
-        AddHandler SourceScraped, New EventHandler(AddressOf StepPB1)
+        'AddHandler SourceScraped, New SourceScrapedEventHandler(AddressOf StepPB1)
         _sourceTotal = _sources.Count
         Dim thrdIndex = 1
-        While _sources.Any() And Running
-            While Paused
-                
+        While _sources.Any() And _running
+            While _paused
+
             End While
             If _thrdCntScrape <= _maxThrdScrape Then
                 _dictScrape(thrdIndex.ToString) = New Thread(AddressOf ScrapeTask)
@@ -44,6 +48,7 @@ Public Class ProxyGenerator_V2
                 _dictScrape(thrdIndex.ToString).Start()
                 _thrdCntScrape = _thrdCntScrape + 1
                 thrdIndex = thrdIndex + 1
+                RaiseEvent SourceScraped()
             End If
         End While
         Return True
@@ -59,7 +64,6 @@ Public Class ProxyGenerator_V2
             _scraped.AddRange(ScrapeLink(toScrape).Distinct().ToList())
             _thrdCntScrape = _thrdCntScrape - 1
         End If
-        RaiseEvent(SourceScraped)
     End Sub
 
     'scrapes a given link for proxies
@@ -67,7 +71,8 @@ Public Class ProxyGenerator_V2
         Dim proxies = New List(Of String)
         Try 'gets the entire web page as a string
             Dim r As HttpWebRequest = HttpWebRequest.Create(link)
-            r.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"
+            r.UserAgent =
+                "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"
             r.Timeout = 15000
             Using sr As New StreamReader(r.GetResponse().GetResponseStream())
                 proxies = ExtractProx(sr.ReadToEnd())
@@ -75,7 +80,6 @@ Public Class ProxyGenerator_V2
             r.Abort()
             If proxies.Any() Then
                 _hasResult.Add(link)
-                RaiseEvent(SourceFound)
             Else
                 _noResult.Add(link)
             End If
@@ -119,11 +123,11 @@ Public Class ProxyGenerator_V2
 
     'CHECKER
     Function CheckHerder() As Boolean
-        AddHandler ProxyChecked, New EventHandler(AddressOf StepPB2)
+        'AddHandler ProxyChecked, New ProxyCheckedEventHandler(AddressOf StepPB2)
         _scrapedTotal = _scraped.Count
         Dim thrdIndexC = 1
-        While _scraped.Any() and Running
-            While Paused
+        While _scraped.Any() and _running
+            While _paused
 
             End While
             If _thrdCntCheck <= _maxThrdCheck Then
@@ -132,6 +136,7 @@ Public Class ProxyGenerator_V2
                 _dictCheck(thrdIndexC.ToString).Start()
                 _thrdCntCheck = _thrdCntCheck + 1
                 thrdIndexC = thrdIndexC + 1
+                RaiseEvent ProxyChecked()
             End If
         End While
         Return True
@@ -146,18 +151,17 @@ Public Class ProxyGenerator_V2
             End SyncLock
             If CheckProxy(toCheck) and Not _working.contains(toCheck) Then
                 _working.Add(toCheck)
-                RaiseEvent(ProxyWorking)
             End If
             _thrdCntCheck = _thrdCntCheck - 1
         End If
-        RaiseEvent(ProxyChecked)
     End Sub
 
     'test single proxy
     Function CheckProxy(proxy As String) As Boolean
         Try 'uses azenv.net proxy judge
             Dim r As HttpWebRequest = HttpWebRequest.Create(Judge)
-            r.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.2 Safari/537.36"
+            r.UserAgent =
+                "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.2 Safari/537.36"
             r.Timeout = 3000
             r.ReadWriteTimeout = 3000
             r.Proxy = New WebProxy(proxy)
@@ -191,7 +195,7 @@ Public Class ProxyGenerator_V2
                 End Using
             End If
         Else
-           MessageBox.Show(PGV2_1)
+            MessageBox.Show(PGV2_1)
         End If
     End Sub
 
@@ -273,7 +277,7 @@ Public Class ProxyGenerator_V2
         If _noResult.Any() Or _hasResult.Any() Then
             If _hasResult.Any() and CheckBox3.Checked Then
                 SaveFile(_hasResult)
-            Else 
+            Else
                 SaveFile(_noResult.Concat(_hasResult))
             End If
         Else
@@ -296,7 +300,7 @@ Public Class ProxyGenerator_V2
     Private Sub Button10_Click(sender As Object, e As EventArgs) Handles Button10.Click
         If _scraped.Any() Then
             SaveFile(_scraped)
-        Else 
+        Else
             MessageBox.Show("Nothing to save!")
         End If
     End Sub
@@ -330,9 +334,9 @@ Public Class ProxyGenerator_V2
 
     'QuickStart
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        If Not Paused Then
+        If Not _paused Then
             LoadSrc()
-            Running = True
+            _running = True
             If ScrapeHerder() Then
                 CheckHerder()
             End If
@@ -341,20 +345,20 @@ Public Class ProxyGenerator_V2
             End While
             MessageBox.Show("Finished! Saving output...")
             SaveFile(_working)
-        Else 
-            Paused = False
+        Else
+            _paused = False
         End If
     End Sub
 
     'Pause
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        Paused = True
+        _paused = True
     End Sub
 
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
-        Running = False
-        If Paused Then
-            Paused = False
+        _running = False
+        If _paused Then
+            _paused = False
         End If
         While _thrdCntCheck > 0 And _thrdCntScrape > 0 
 
@@ -365,16 +369,34 @@ Public Class ProxyGenerator_V2
 
     'PROGRESS BAR EVENTS
     'Scraper
-    Sub StepPB1()
-        ProgressBar2.Value = Math.Round((1-(_sources.Count/_sourceTotal))*100)
-        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    'Sub StepPb1()
+    '    ProgressBar2.Invoke(Sub()
+    '        ProgressBar2.Value = Math.Round((1-(_sources.Count/_sourceTotal))*100)
+    '                        End Sub)
+    '    ProgressBar3.Invoke(Sub()
+    '        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    '                        End Sub)
+    'End Sub
+
+    'Sub StepPb2()
+    '    ProgressBar1.Invoke(Sub()
+    '        ProgressBar1.Value = Math.Round((1-(_scraped.Count/_scrapedTotal))*100)
+    '                        End Sub)
+    '    ProgressBar3.Invoke(Sub()
+    '        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    '                        End Sub)        
+    'End Sub
+
+    Private Sub ProxyGeneratorV2_ProxyChecked() Handles Me.ProxyChecked
+        ProgressBar1.Value = Math.Round((1 - (_scraped.Count/_scrapedTotal))*100)
+        ProgressBar3.Value = Math.Round((1 - (_sources.Count/_sourceTotal))*50) +
+                             Math.Round((1 - (_scraped.Count/_scrapedTotal))*50)
     End Sub
 
-    Sub StepPB2()
-        ProgressBar1.Value = Math.Round((1-(_scraped.Count/_scrapedTotal))*100)
-        ProgressBar3.Value = Math.Round((1-(_sources.Count/_sourceTotal))*50) + Math.Round((1-(_scraped.Count/_scrapedTotal))*50)
+    Private Sub ProxyGeneratorV2_SourceScraped() Handles Me.SourceScraped
+        ProgressBar2.Value = Math.Round((1 - (_sources.Count/_sourceTotal))*100)
+        ProgressBar3.Value = Math.Round((1 - (_sources.Count/_sourceTotal))*50) +
+                             Math.Round((1 - (_scraped.Count/_scrapedTotal))*50)
     End Sub
-
     'END PROGRESS BAR EVENTS
-
 End Class

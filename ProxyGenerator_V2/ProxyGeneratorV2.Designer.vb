@@ -22,6 +22,7 @@ Partial Class ProxyGenerator_V2
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(ProxyGenerator_V2))
         Me.ProgressBar2 = New System.Windows.Forms.ProgressBar()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.TrackBar1 = New System.Windows.Forms.TrackBar()
@@ -247,7 +248,7 @@ Partial Class ProxyGenerator_V2
         Me.TabPage2.Location = New System.Drawing.Point(4, 22)
         Me.TabPage2.Name = "TabPage2"
         Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage2.Size = New System.Drawing.Size(264, 220)
+        Me.TabPage2.Size = New System.Drawing.Size(279, 298)
         Me.TabPage2.TabIndex = 1
         Me.TabPage2.Text = "Checker"
         '
@@ -358,7 +359,7 @@ Partial Class ProxyGenerator_V2
         Me.ProgressBar1.Size = New System.Drawing.Size(264, 23)
         Me.ProgressBar1.TabIndex = 13
         '
-        'ProxyGenerator_V2
+        'ProxyGeneratorV2
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6!, 13!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
@@ -368,7 +369,9 @@ Partial Class ProxyGenerator_V2
         Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
-        Me.Name = "ProxyGenerator_V2"
+        Me.Icon = CType(resources.GetObject("$this.Icon"),System.Drawing.Icon)
+        Me.MaximizeBox = false
+        Me.Name = "ProxyGeneratorV2"
         Me.Text = "Proxy Generator"
         CType(Me.TrackBar1,System.ComponentModel.ISupportInitialize).EndInit
         Me.TabControl1.ResumeLayout(false)

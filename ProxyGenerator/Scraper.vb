@@ -15,6 +15,8 @@ Public Class Scraper
     ReadOnly _listLock As Object = New Object
     ReadOnly _d As New Dictionary(Of String, Thread)()
     Private _sourceTotal As Integer = 0
+    Private _fileIndex = 0
+    Private _fileLock As Object = New Object
 
     Function ScrapeHerder() As Boolean
         _sourceTotal = _sources.Count
@@ -28,6 +30,7 @@ Public Class Scraper
                 thrdIndex = thrdIndex + 1
             End If
         End While
+        Thread.Sleep(20000)
         Return True
     End Function
 
@@ -38,7 +41,7 @@ Public Class Scraper
                 toScrape = _sources.Item(0)
                 _sources.RemoveAt(0)
             End SyncLock
-            Scraped.AddRange(ScrapeLink(toScrape).Distinct().ToList())
+            SaveScraped(ScrapeLink(toScrape).Distinct().ToList())
             _thrdCnt = _thrdCnt - 1
         End If
     End Sub
@@ -107,6 +110,43 @@ Public Class Scraper
     Public Sub Load()
         LoadSrc()
     End Sub
+
+    Private Sub SaveScraped(scrp As List(Of String))
+        Dim TmpPath As String = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
+        Dim maxSize As Long = 100000
+        SyncLock _fileLock
+            For Each s As String in scrp
+                Try
+                    If (FileLen(TmpPath) > maxSize) Then
+                    'If (File.ReadAllLines(TmpPath).Length >= 2500) Then
+                    _fileIndex = _fileIndex + 1
+                    TmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
+                End If
+                Catch Ex as Exception
+                    'File not created yet
+                End Try
+                Using SW = New StreamWriter(TmpPath, true)
+                    SW.WriteLine(s)
+                End Using
+            Next s        
+        End SyncLock
+    End Sub
+
+    Public Shared Function LoadScraped(bool as Boolean) As List(Of String)
+        Dim scrape As List(Of String) = New List(Of String)
+        For Each f As String In Directory.GetFiles(Path.GetTempPath())
+            If f.Contains("ProxyGenScrape_") then
+                Using SR = New StreamReader(f)
+                    scrape.AddRange(SR.ReadToEnd().Split(vbNewLine).ToList())
+                End Using
+                If bool Then
+                    File.Delete(f)
+                End If
+            End If 
+        Next
+        Return scrape
+    End Function
+
 
     Public Function ReturnThreadCount() As Integer
         Return _thrdCnt
