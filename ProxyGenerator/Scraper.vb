@@ -15,6 +15,7 @@ Public Class Scraper
     Private _sourceScraped As Integer = 0
     Private _fileIndex = 0
     Private _fileLock As Object = New Object
+    Private _screenLock As Object = New Object
     Dim _lineIndex As Integer = 0
     Dim _fileManager As Thread
 
@@ -32,10 +33,8 @@ Public Class Scraper
         Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
         Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("                                                                                ")
-        Console.WriteLine("................................................................................")
         Console.SetCursorPosition(0, 7)
-        Console.CursorSize = 100
+        Console.CursorVisible = False
         _sourceTotal = _sources.Count
         Dim thrdIndex = 1
         _fileManager = New Thread(AddressOf ScrapeBuffer)
@@ -90,21 +89,11 @@ Public Class Scraper
 
             If proxies.Count > 0 Then
                 'Console.WriteLine(proxies.Count & v2_Threading_ScrapeLink__proxies_found_at_ & link)
-                'Console.Write(".")
+                SyncLock _screenLock
+                    Console.SetCursorPosition(0,7)
+                    Console.WriteLine(Math.Abs(Math.Round((1-(_sources.Count/_sourceTotal))*100, 2)) & "%                                   ")
+                End SyncLock
                 _sourceScraped = _sourceScraped + proxies.Count()
-                Console.SetCursorPosition(left := Console.CursorLeft + 1, top := 7)
-                If Console.CursorLeft > 79 Then 
-                    ''Console.Clear()
-                    'Console.SetCursorPosition(left := 0, top := 0)
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-                    'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    'Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    Console.CursorLeft = 0
-                    Console.CursorTop = 7
-                End If
             End If
         Catch ex As Exception
 
@@ -172,9 +161,7 @@ Public Class Scraper
         Dim scrape As List(Of String) = New List(Of String)
         For Each f As String In Directory.GetFiles(Path.GetTempPath())
             If f.Contains("ProxyGenScrape_") then
-                Using SR = New StreamReader(f)
-                    scrape.AddRange(SR.ReadToEnd().Split(vbNewLine).ToList())
-                End Using
+                scrape.AddRange(File.ReadAllLines(f).ToList())
                 If bool Then
                     File.Delete(f)
                 End If

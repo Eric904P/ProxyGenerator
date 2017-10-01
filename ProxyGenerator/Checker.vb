@@ -11,11 +11,12 @@ Public Class Checker
     Private _scrapedTotal As Integer = 0
     Private _fileIndex As Integer = 0
     Private _workingCount As Integer = 0
-    Private _scraped = Scraper.LoadScraped(true)
+    Private _scraped As List(Of String) = New List(Of String) 'Scraper.LoadScraped(true)
     Private _fileLock As Object = New Object()
+    Private _screenLock As Object = New Object()
     Dim _lineIndex As Integer = 0
     Private _working As List(Of String) = New List(Of String)
-    Dim _fileManager As Thread 
+    Dim _fileManager, _loadBuffer As Thread 
 
     'constructor
     Public Sub New()
@@ -24,22 +25,23 @@ Public Class Checker
 
     'thread manager
     Function CheckHerder() As Boolean
-        Console.SetCursorPosition(left := 0, top := 0)
+        Console.SetCursorPosition(left:=0, top:=0)
         Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
         Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
         Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         Console.WriteLine("- - - - - - - - - - - - - - - -CHECKING PLEASE WAIT- - - - - - - - - - - - - - -")
         Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("                                                                                ")
-        Console.WriteLine("................................................................................")
-        Console.SetCursorPosition(0, 7)
-        Console.CursorSize = 100
+        Console.SetCursorPosition(0, 8)
+        Console.CursorVisible = False
         _scrapedTotal = _scraped.Count
         Dim thrdIndexC = 1
         _fileManager = New Thread(AddressOf CheckedBuffer)
         _fileManager.IsBackground = True
         _fileManager.Start()
+        _loadBuffer = New Thread(AddressOf ScrapedBufferLoader)
+        _loadBuffer.IsBackground = True
+        _loadBuffer.Start()
         While _scraped.Count > 0
             If _thrdCntC <= _thrdMaxC Then
                 _dC(thrdIndexC.ToString) = New Thread(AddressOf CheckTask)
@@ -64,20 +66,11 @@ Public Class Checker
             If CheckProxy(toCheck) Then
                 _working.Add(toCheck)
                 _workingCount = _workingCount + 1
+                SyncLock _screenLock
+                    Console.SetCursorPosition(0,8)
+                    Console.WriteLine(Math.Abs(Math.Round((1-(_scraped.Count/_scrapedTotal))*100, 2)) & "%                                   ")
+                End SyncLock
                 'Console.WriteLine(toCheck)
-                Console.SetCursorPosition(left := Console.CursorLeft + 1, top := 7)
-                If Console.CursorLeft > 79 Then 
-                    ''Console.Clear()
-                    'Console.SetCursorPosition(left := 0, top := 0)
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-                    'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    'Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
-                    'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    Console.CursorLeft = 0
-                    Console.CursorTop = 7
-                End If
             End If
             _thrdCntC = _thrdCntC - 1
         End If
@@ -128,8 +121,8 @@ Public Class Checker
         Dim checked As List(Of String) = New List(Of String)
         For Each f As String In Directory.GetFiles(Path.GetTempPath())
             If f.Contains("ProxyGenCheck_") Then
-                Using SR = New StreamReader(f)
-                    checked.AddRange(SR.ReadToEnd().Split(vbNewLine).ToList())
+                Using sr = New StreamReader(f)
+                    checked.AddRange(sr.ReadToEnd().Split(vbNewLine).ToList())
                 End Using
                 If bool Then
                     File.Delete(f)
@@ -138,4 +131,22 @@ Public Class Checker
         Next
         Return checked
     End Function
+
+    Private Sub ScrapedBufferLoader()
+        Dim buffIndex As Integer = 0
+        Dim tmpPath As String = Path.GetTempPath() + "ProxyGenScrape_" + buffIndex.toString()
+        Dim fileEnd As Boolean = False
+        While _thrdCntC > 0 and Not fileEnd
+            If Not File.Exists(tmpPath) Then 
+                fileEnd = True
+                End
+            End If
+            If _scraped.Count < 1000 Then
+                _scraped.AddRange(File.ReadAllLines(tmpPath))
+                File.Delete(tmpPath)
+                buffIndex = buffIndex + 1
+                tmpPath = Path.GetTempPath() + "ProxyGenScrape_" + buffIndex.ToString()
+            End If
+        End While        
+    End Sub
 End Class
