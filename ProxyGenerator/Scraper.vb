@@ -1,5 +1,10 @@
 ﻿Imports System.IO
 Imports System.Net
+Imports System.Net.Cache
+Imports System.Net.Security
+Imports System.Runtime.Serialization
+Imports System.Security.Cryptography.X509Certificates
+Imports System.Security.Principal
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports ProxyGenerator.My.Resources
@@ -15,24 +20,29 @@ Public Class Scraper
     Private _sourceScraped As Integer = 0
     Private _fileIndex = 0
     Private _fileLock As Object = New Object
-    Private _screenLock As Object = New Object
+    Private ReadOnly _screenLock As Object = New Object
     Dim _lineIndex As Integer = 0
     Dim _fileManager As Thread
 
-    'constructor
+    ''' <summary>
+    '''     constructor
+    ''' </summary>
     Public Sub New()
-
     End Sub
 
-    'thread manager
+    ''' <summary>
+    '''     Main function called to scrape sources
+    ''' </summary>
+    ''' <returns></returns>
     Function ScrapeHerder() As Boolean
-        Console.SetCursorPosition(left:=0, top:=0)
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-        Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        LoadSrc()
+        Console.SetCursorPosition(left := 0, top := 0)
+        Console.WriteLine(ScrapeHeader)
+        'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        'Console.WriteLine("- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -")
+        'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         Console.SetCursorPosition(0, 7)
         Console.CursorVisible = False
         _sourceTotal = _sources.Count
@@ -53,7 +63,9 @@ Public Class Scraper
         Return True
     End Function
 
-    'action performed by each thread
+    ''' <summary>
+    '''     Task for scraper thread
+    ''' </summary>
     Private Sub ScrapeTask()
         If _sources.Count > 0 Then
             Dim toScrape As String
@@ -66,43 +78,33 @@ Public Class Scraper
         End If
     End Sub
 
-    'scrapes a given link for proxies
+    ''' <summary>
+    '''     Scrapes URL 'link' for proxies and returns found proxies as a List(Of String)
+    ''' </summary>
+    ''' <param name="link"></param>
+    ''' <returns></returns>
     Private Function ScrapeLink(link As String) As List(Of String)
-        Dim proxies = New List(Of String)
-        Dim temp As String
-        Try 'gets the entire web page as a string
-            Dim r As HttpWebRequest = HttpWebRequest.Create(link)
-            r.UserAgent =
-                "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36"
-            r.Timeout = 15000
-            Dim re As HttpWebResponse = r.GetResponse()
-            Dim rs As Stream = re.GetResponseStream
-            Using sr As New StreamReader(rs)
-                temp = sr.ReadToEnd()
-            End Using
-            Dim src = temp
-            rs.Dispose()
-            rs.Close()
-            r.Abort()
-            'uses extractProx method to find all proxies on the webpage
-            proxies = ExtractProx(src)
+        Dim proxies =
+                ExtractProx(New StreamReader(HttpWebRequestWrapper.CreateNew(link, 15000, UserAgent).GetResponse().GetResponseStream()).ReadToEnd())
 
-            If proxies.Count > 0 Then
-                'Console.WriteLine(proxies.Count & v2_Threading_ScrapeLink__proxies_found_at_ & link)
-                SyncLock _screenLock
-                    Console.SetCursorPosition(0,7)
-                    Console.WriteLine(Math.Abs(Math.Round((1-(_sources.Count/_sourceTotal))*100, 2)) & "%                                   ")
-                End SyncLock
-                _sourceScraped = _sourceScraped + proxies.Count()
-            End If
-        Catch ex As Exception
+        If proxies.Count > 0 Then
+            SyncLock _screenLock
+                Console.SetCursorPosition(0, 7)
+                Console.WriteLine(
+                    Math.Abs(Math.Round((1 - (_sources.Count/_sourceTotal))*100, 2)) &
+                    "%                                   ")
+            End SyncLock
+            _sourceScraped = _sourceScraped + proxies.Count
+        End If
 
-        End Try
-        'returns scraped result
         Return proxies
     End Function
 
-    'finds all proxies in a given string, returns them as a List(Of String)
+    ''' <summary>
+    '''     Finds all proxies in a given string, returns them as a List(Of String)
+    ''' </summary>
+    ''' <param name="http"></param>
+    ''' <returns></returns>
     Private Function ExtractProx(http As String) As List(Of String)
         Dim output = New List(Of String)
 
@@ -112,7 +114,9 @@ Public Class Scraper
         Return output
     End Function
 
-    'loads all source links from internal resources
+    ''' <summary>
+    '''     loads all source links from local resources
+    ''' </summary>
     Private Sub LoadSrc()
         Dim psrc As String = My.Resources.psrc
         _sources = psrc.Split("$").ToList()
@@ -122,7 +126,9 @@ Public Class Scraper
         _sources.RemoveAt(0)
     End Sub
 
-    'fallback method, will remove to keep my sources safe
+    ''' <summary>
+    '''     fallback source method
+    ''' </summary>
     Private Sub LoadSrcWeb()
         Dim client = New WebClient()
         Dim reader = New StreamReader(client.OpenRead(WebSrc))
@@ -132,40 +138,41 @@ Public Class Scraper
         _sources.RemoveAt(0)
     End Sub
 
-    'public source load method
-    Public Sub Load()
-        LoadSrc()
-    End Sub
-
-    'creates files 10000 lines long
+    ''' <summary>
+    ''' Stores scraped proxies to local files to save on memory usage
+    ''' </summary>
     Private Sub ScrapeBuffer()
-        Dim tmpPath As String = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.toString()
+        Dim tmpPath As String = Path.GetTempPath() + PGS_ + _fileIndex.toString()
         While _thrdCnt > 0
             If Scraped.Count > 10000 Then
                 File.AppendAllLines(tmpPath, Scraped.GetRange(0, 10000))
                 _fileIndex = _fileIndex + 1
-                tmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.ToString()
+                tmpPath = Path.GetTempPath() + PGS_ + _fileIndex.ToString()
                 Scraped.RemoveRange(0, 10000)
             End If
         End While
         If Scraped.Count > 0 And Scraped.Count < 10000 Then
             File.AppendAllLines(tmpPath, Scraped)
             _fileIndex = _fileIndex + 1
-            tmpPath = Path.GetTempPath() + "ProxyGenScrape_" + _fileIndex.ToString()
+            tmpPath = Path.GetTempPath() + PGS_ + _fileIndex.ToString()
             scraped.Clear()
         End If
     End Sub
 
-    'rejoins the split files
+    ''' <summary>
+    ''' Rejoins the split local files, if "bool" then they will be deleted
+    ''' </summary>
+    ''' <param name="bool"></param>
+    ''' <returns></returns>
     Public Shared Function LoadScraped(bool as Boolean) As List(Of String)
-        Dim scrape As List(Of String) = New List(Of String)
+        Dim scrape = New List(Of String)
         For Each f As String In Directory.GetFiles(Path.GetTempPath())
-            If f.Contains("ProxyGenScrape_") then
+            If f.Contains(PGS_) then
                 scrape.AddRange(File.ReadAllLines(f).ToList())
                 If bool Then
                     File.Delete(f)
                 End If
-            End If 
+            End If
         Next
         Return scrape
     End Function

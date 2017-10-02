@@ -61,11 +61,57 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        ''' /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''- - - - - - - - - - - - - - - -CHECKING PLEASE WAIT- - - - - - - - - - - - - - -
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.
+        '''</summary>
+        Friend ReadOnly Property CheckHeader() As String
+            Get
+                Return ResourceManager.GetString("CheckHeader", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to http://azenv.net.
         '''</summary>
         Friend ReadOnly Property Judge() As String
             Get
                 Return ResourceManager.GetString("Judge", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        ''' /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''- - - - - - - - - - - - - - - -PRESS ENTER TO START- - - - - - - - - - - - - - -
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.
+        '''</summary>
+        Friend ReadOnly Property MainHeader() As String
+            Get
+                Return ResourceManager.GetString("MainHeader", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to ProxyGenCheck_.
+        '''</summary>
+        Friend ReadOnly Property PGC_() As String
+            Get
+                Return ResourceManager.GetString("PGC_", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to ProxyGenScrape_.
+        '''</summary>
+        Friend ReadOnly Property PGS_() As String
+            Get
+                Return ResourceManager.GetString("PGS_", resourceCulture)
             End Get
         End Property
         
@@ -85,6 +131,38 @@ Namespace My.Resources
         Friend ReadOnly Property psrc() As String
             Get
                 Return ResourceManager.GetString("psrc", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        ''' /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '''- - - - - - - - - - - - - - - -SCRAPING PLEASE WAIT- - - - - - - - - - - - - - -
+        '''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.
+        '''</summary>
+        Friend ReadOnly Property ScrapeHeader() As String
+            Get
+                Return ResourceManager.GetString("ScrapeHeader", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to HTTP_HOST = azenv.net.
+        '''</summary>
+        Friend ReadOnly Property TestString() As String
+            Get
+                Return ResourceManager.GetString("TestString", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.2 Safari/537.36.
+        '''</summary>
+        Friend ReadOnly Property UserAgent() As String
+            Get
+                Return ResourceManager.GetString("UserAgent", resourceCulture)
             End Get
         End Property
         

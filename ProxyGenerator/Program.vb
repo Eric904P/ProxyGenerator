@@ -28,9 +28,10 @@ Module Program
     End Sub
 
     'Deletes files on close
-    Public Declare Auto Function SetConsoleCtrlHandler Lib "kernel32.dll" (ByVal Handler As HandlerRoutine, ByVal Add As Boolean) As Boolean
+    Public Declare Auto Function SetConsoleCtrlHandler Lib "kernel32.dll"(Handler As HandlerRoutine, Add As Boolean) _
+        As Boolean
 
-    Public Delegate Function HandlerRoutine(ByVal CtrlType As CtrlTypes) As Boolean
+    Public Delegate Function HandlerRoutine(CtrlType As CtrlTypes) As Boolean
 
     Public Enum CtrlTypes
         CTRL_C_EVENT = 0
@@ -41,14 +42,14 @@ Module Program
     End Enum
 
     'Handles window close event
-    Public Function ControlHandler(ByVal ctrlType As CtrlTypes) As Boolean
+    Public Function ControlHandler(ctrlType As CtrlTypes) As Boolean
         If ctrlType = CtrlTypes.CTRL_CLOSE_EVENT Then
             Dim FileList As String() = Directory.GetFiles(Path.GetTempPath())
             For Each f as String in FileList
                 If f.Contains("ProxyGen") Then
                     File.Delete(f)
                     Console.WriteLine("DELETED" + f)
-                End If 
+                End If
             Next
             Return True
         End If
@@ -61,16 +62,15 @@ Module Program
 
         Console.WindowWidth = 81
         Console.SetCursorPosition(left := 0, top := 0)
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-        Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        Console.WriteLine("- - - - - - - - - - - - - - - -PRESS ENTER TO START- - - - - - - - - - - - - - -")
-        Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        Console.WriteLine(Mainheader)
+        'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
+        'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        'Console.WriteLine("- - - - - - - - - - - - - - - -PRESS ENTER TO START- - - - - - - - - - - - - - -")
+        'Console.WriteLine("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         Console.ReadKey()
 
-
-        Scraper.Load()
         If Scraper.ScrapeHerder() Then
             If Checker.CheckHerder() Then
                 SaveFile(Checker.LoadChecked(true))
