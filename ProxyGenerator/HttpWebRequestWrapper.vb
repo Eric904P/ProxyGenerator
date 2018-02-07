@@ -22,10 +22,10 @@ Class HttpWebRequestWrapper
     ''' <param name="uri"></param>
     ''' <param name="time"></param>
     ''' <param name="ua"></param>
-    ''' <param name="IOTime"></param>
+    ''' <param name="ioTime"></param>
     ''' <param name="yxorp"></param>
     ''' <returns></returns>
-    Public Shared Function CreateNew(uri As String, Optional time As Integer, Optional ua As String, Optional IOTime As Integer, Optional yxorp As IWebProxy) As HttpWebRequest
+    Public Shared Function CreateNew(uri As String, Optional time As Integer = 5000, Optional ua As String = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.2 Safari/537.36", Optional ioTime As Integer = 5000, Optional yxorp As IWebProxy = Nothing) As HttpWebRequest
         Dim tempRequest As HttpWebRequest = HttpWebRequest.Create(uri)
         TempRequest.Timeout = time
         TempRequest.UserAgent = ua

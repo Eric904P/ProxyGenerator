@@ -28,7 +28,7 @@ Module Program
     End Sub
 
     'Deletes files on close
-    Public Declare Auto Function SetConsoleCtrlHandler Lib "kernel32.dll"(Handler As HandlerRoutine, Add As Boolean) _
+    Public Declare Auto Function SetConsoleCtrlHandler Lib "kernel32.dll"(Handler As HandlerRoutine, add As Boolean) _
         As Boolean
 
     Public Delegate Function HandlerRoutine(CtrlType As CtrlTypes) As Boolean

@@ -36,7 +36,7 @@ Public Class Scraper
     ''' <returns></returns>
     Function ScrapeHerder() As Boolean
         LoadSrc()
-        Console.SetCursorPosition(left := 0, top := 0)
+        Console.SetCursorPosition(left:=0, top:=0)
         Console.WriteLine(ScrapeHeader)
         'Console.WriteLine("/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ PROXY GENERATOR v2.5 /\/\/\/\/\/\/\/\/\/\/\/\/\/\")
         'Console.WriteLine(" /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ BY ERIC904P /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\")
@@ -84,20 +84,26 @@ Public Class Scraper
     ''' <param name="link"></param>
     ''' <returns></returns>
     Private Function ScrapeLink(link As String) As List(Of String)
-        Dim proxies =
-                ExtractProx(New StreamReader(HttpWebRequestWrapper.CreateNew(link, 15000, UserAgent).GetResponse().GetResponseStream()).ReadToEnd())
+        Dim proxies = New List(Of String)()
+        Try 
+            proxies = ExtractProx(New StreamReader(HttpWebRequestWrapper.CreateNew(link, 15000, UserAgent).GetResponse().GetResponseStream()).ReadToEnd())
+        Catch E As Exception
+            writeLog(E.ToString())
+        End Try
+        
+            If proxies.Count > 0 Then
+                SyncLock _screenLock
+                    Console.SetCursorPosition(0, 7)
+                    Console.WriteLine(
+                        Math.Abs(Math.Round((1 - (_sources.Count / _sourceTotal)) * 100, 2)) &
+                        "%                                   ")
+                End SyncLock
+                _sourceScraped = _sourceScraped + proxies.Count
+            End If
 
-        If proxies.Count > 0 Then
-            SyncLock _screenLock
-                Console.SetCursorPosition(0, 7)
-                Console.WriteLine(
-                    Math.Abs(Math.Round((1 - (_sources.Count/_sourceTotal))*100, 2)) &
-                    "%                                   ")
-            End SyncLock
-            _sourceScraped = _sourceScraped + proxies.Count
-        End If
+            Return proxies
 
-        Return proxies
+        
     End Function
 
     ''' <summary>
@@ -176,4 +182,10 @@ Public Class Scraper
         Next
         Return scrape
     End Function
+
+    Private Sub writeLog(log As string)
+        SyncLock _fileLock
+        File.AppendAllText(Path.GetTempPath() + "PG.LOGFILE", log + vbNewLine) 
+        End SyncLock      
+    End Sub
 End Class

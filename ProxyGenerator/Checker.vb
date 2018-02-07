@@ -90,7 +90,7 @@ Public Class Checker
     ''' <returns></returns>
     Function CheckProxy(proxy As String) As Boolean
         Try
-            If New StreamReader(HttpWebRequestWrapper.CreateNew(Judge, time := 3000, ua := UserAgent, IOTime := 3000, yxorp := New WebProxy(Proxy)).GetResponse().GetResponseStream()).ReadToEnd().Contains(TestString) Then
+            If New StreamReader(HttpWebRequestWrapper.CreateNew(Judge, time := 3000, ua := UserAgent, ioTime := 3000, yxorp := New WebProxy(Proxy)).GetResponse().GetResponseStream()).ReadToEnd().Contains(TestString) Then
                 Return True
             End If
         Catch ex As Exception
