@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{56BC5B67-FA22-4259-A7B9-80F00903FBF5}</ProjectGuid>
+    <ProjectGuid>{CDBC4A21-4981-4ECB-B0EA-B2CC728F4ADB}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>SimpleProxyGen.Module1</StartupObject>
-    <RootNamespace>SimpleProxyGen</RootNamespace>
-    <AssemblyName>SimpleProxyGen</AssemblyName>
+    <StartupObject>ProxyGen.Module1</StartupObject>
+    <RootNamespace>ProxyGen</RootNamespace>
+    <AssemblyName>ProxyGen</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -21,7 +21,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>SimpleProxyGen.xml</DocumentationFile>
+    <DocumentationFile>ProxyGen.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -31,7 +31,7 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>SimpleProxyGen.xml</DocumentationFile>
+    <DocumentationFile>ProxyGen.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
@@ -69,6 +69,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpWebRequestWrapper.vb" />
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -108,9 +109,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\psrc.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\psrc2.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

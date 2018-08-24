@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
-Imports System.Threading
 Imports System.Windows.Forms
 
 Module Module1
@@ -12,72 +11,6 @@ Module Module1
     Private _validSources As List(Of String) = New List(Of String)
     Private outFile As String = Environment.CurrentDirectory + "\proxies.txt"
     Private workingFile As String = Environment.CurrentDirectory + "\working.txt"
-    Private scrapeFile As String = Environment.CurrentDirectory + "\scraped"
-    ReadOnly _dC As New Dictionary(Of String, Thread)()
-    Private ThreadCount = 0
-    Private ScrapeIndex = 1
-    Private Lock As Object = new Object
-    Private checkcnt as Integer = 0
-
-#Region "threading"
-    Function Scraper() As Boolean
-        While _sources.Count > 0
-            if ThreadCount <= 4 Then
-                Dim t = New Thread(AddressOf ScrapeTask)
-                t.IsBackground = true
-                t.Start()
-                ThreadCount += 1
-            End If
-        End While
-        Return true
-    End Function
-
-    Sub ScrapeTask()
-        Try 
-            WriteToFile(ScrapeLink(_sources.ElementAt(0)))
-            _sources.RemoveAt(0)
-            ThreadCount = ThreadCount - 1
-        Catch
-
-        End Try
-    End Sub
-
-    Function Checker() As Boolean
-        While _scraped.Count > 0
-            LoadScraped(false)
-            if ThreadCount <= 128 Then
-                Dim t = New Thread(AddressOf CheckTask)
-                t.IsBackground = True
-                t.Start()
-                ThreadCount += 1
-            End If
-        End While
-        Return true
-    End Function
-
-    Sub CheckTask()
-        Dim temp
-        SyncLock Lock
-            temp = _scraped.ElementAt(0)
-            _scraped.RemoveAt(0)
-        End SyncLock
-        Try
-            If CheckProxy(temp) Then
-                File.AppendAllLines(outFile,{temp})
-                Console.WriteLine(checkcnt + "WORKING " + temp)
-                checkcnt += 1
-            Else
-                Console.WriteLine(checkcnt + "FAILED " + temp)
-                checkcnt += 1
-            End If
-            ThreadCount = ThreadCount - 1
-        Catch
-
-        End Try
-    End Sub
-
-#End Region
-
 
 #Region "SCRAPER"
     'scrapes a given link for proxies
@@ -187,56 +120,10 @@ Module Module1
         End If
         Return tempList
     End Function
-
-    Function LoadScraped(init As Boolean) As Boolean
-        if _scraped.Count > 128 and init.Equals(False) Then
-            Return True
-        Else 
-            dim scrapePath = scrapeFile + ScrapeIndex.ToString()
-            Try
-                _scraped = OpenFile(scrapePath).Distinct()
-                File.Delete(scrapePath)
-                ScrapeIndex -= 1
-            Catch
-                Return True
-            End Try
-        End If
-        Return False
-    End Function
-
-    Sub WriteToFile(lines As List(Of String))
-        _scraped.AddRange(lines)
-        dim scrapePath = scrapeFile + ScrapeIndex.ToString()
-        Try
-            if _scraped.Count > 1000000 then
-                File.AppendAllLines(scrapePath, _scraped.GetRange(0, 1000000))
-                ScrapeIndex += 1
-                _scraped.RemoveRange(0,1000000)
-            End If
-        Catch
-
-        End Try
-    End Sub
-
-    'Function ReadNextLine() As String
-    '    dim line as String
-    '    Using r As TextReader = New StreamReader(scrapeFile)
-    '        line =  r.ReadToEnd()
-    '        Dim lines = line.Split(vbnewline).ToList()
-    '        line = lines.ElementAt(0)
-    '        lines.RemoveAt(0)
-    '        Using w As TextWriter = new StreamWriter(scrapeFile)
-    '            For Each l as String in lines
-    '                w.WriteLine(l)
-    '            Next
-    '        End Using
-    '    End Using
-    '    return line
-    'End Function
 #End Region
 
     Sub Main(args As String())
-        Console.WriteLine("Usage: SimpleProxyGen.exe -s [sourcefile] -o [outputfile] -w [workingsourcefile] -t [tempfile]" + vbNewLine + "If no params are provided, will use inbuilt sources, save proxies in local 'proxies.txt' file, working sources in 'working.txt', and temp file 'scraped.txt'")
+        Console.WriteLine("Usage: SimpleProxyGen.exe -s [sourcefile] -o [outputfile] -w [workingsourcefile]" + vbNewLine + "If no params are provided, will use inbuilt sources, save proxies in local 'proxies.txt' file, and working sources in 'working.txt'")
        
         If args.Length >= 2 then
             If args.ElementAt(0).Equals("-s") Then
@@ -246,8 +133,6 @@ Module Module1
                 outFile = args.ElementAt(1)
             ElseIf args.ElementAt(0).Equals("-w") Then
                 workingFile = args.ElementAt(1)
-            Elseif args.ElementAt(0).Equals("-t") Then
-                scrapeFile = args.ElementAt(1)
             End If
         Else 
             Console.WriteLine("Invalid or nonexistant arguments found, please check you started the program correctly!")
@@ -261,14 +146,12 @@ Module Module1
                 outFile = args.ElementAt(3)
             ElseIf args.ElementAt(2).Equals("-w") Then
                 workingFile = args.ElementAt(3)
-            Elseif args.ElementAt(2).Equals("-t") Then
-                scrapeFile = args.ElementAt(3)
             End If
         Else 
             Console.WriteLine("Invalid or nonexistant arguments found, please check you started the program correctly!")
         End If 
 
-        If args.Length >= 6 Then
+        If args.Length = 6 Then
             If args.ElementAt(4).Equals("-s") Then
                 _sources = OpenFile(args.ElementAt(5))
                 Console.WriteLine("Using provided proxy sources - " + args.ElementAt(5))
@@ -276,23 +159,6 @@ Module Module1
                 outFile = args.ElementAt(5)
             ElseIf args.ElementAt(4).Equals("-w") Then
                 workingFile = args.ElementAt(5)
-            Elseif args.ElementAt(4).Equals("-t") Then
-                scrapeFile = args.ElementAt(5)
-            End If
-        Else 
-            Console.WriteLine("Invalid or nonexistant arguments found, please check you started the program correctly!")
-        End If
-
-        If args.Length = 8 Then
-            If args.ElementAt(6).Equals("-s") Then
-                _sources = OpenFile(args.ElementAt(7))
-                Console.WriteLine("Using provided proxy sources - " + args.ElementAt(7))
-            ElseIf args.ElementAt(6).Equals("-o") Then
-                outFile = args.ElementAt(7)
-            ElseIf args.ElementAt(6).Equals("-w") Then
-                workingFile = args.ElementAt(7)
-            Elseif args.ElementAt(6).Equals("-t") Then
-                scrapeFile = args.ElementAt(7)
             End If
         Else 
             Console.WriteLine("Invalid or nonexistant arguments found, please check you started the program correctly!")
@@ -303,31 +169,24 @@ Module Module1
 
         LoadSrc()
         Console.WriteLine(_sources.Count.ToString() + " sources loaded" + vbNewLine)
-        If Scraper() then 
-            Console.WriteLine("Scraping finished!")
-            LoadScraped(true)
-            If Checker() Then
-                Console.WriteLine("Thanks for using Eric's Basic ProxyGen!")
+        For Each link As String In _sources
+            'File.AppendAllLines()
+            _scraped.AddRange(ScrapeLink(link))
+        Next
+        _sources.Clear()
+        For Each proxy As String In _scraped
+            If CheckProxy(proxy) Then
+                File.AppendAllLines(outFile,{proxy})
+                '_working.Add(proxy)
+                Console.WriteLine(proxy)
             End If
-        End If
-        'For Each link As String In _sources
-        '    'File.AppendAllLines()
-        '    _scraped.AddRange(ScrapeLink(link))
-        'Next
-        '_sources.Clear()
-        'For Each proxy As String In _scraped
-        '    If CheckProxy(proxy) Then
-        '        File.AppendAllLines(outFile,{proxy})
-        '        '_working.Add(proxy)
-        '        Console.WriteLine(proxy)
-        '    End If
-        'Next
-        '_scraped.Clear()
+        Next
+        _scraped.Clear()
         'SaveFile(outFile, _working)
         'SaveFile(workingFile, _validSources)
-        '_validSources.Clear()
-        '_working.Clear()
-        
+        _validSources.Clear()
+        _working.Clear()
+        Console.WriteLine("Thanks for using Eric's Basic ProxyGen!")
     End Sub
 
 End Module

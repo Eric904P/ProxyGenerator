@@ -78,5 +78,27 @@ Namespace My.Resources
                 Return ResourceManager.GetString("psrc", resourceCulture)
             End Get
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to $http://www6.tok2.com/home/lcf/proxy
+        '''$http://samair.ru/proxy/type-01.htm
+        '''$http://samair.ru/proxy/type-02.htm
+        '''$http://samair.ru/proxy/type-03.htm
+        '''$http://samair.ru/proxy/type-04.htm
+        '''$http://samair.ru/proxy/type-05.htm
+        '''$http://samair.ru/proxy/type-06.htm
+        '''$http://samair.ru/proxy/type-07.htm
+        '''$http://samair.ru/proxy/type-08.htm
+        '''$http://samair.ru/proxy/type-09.htm
+        '''$http://samair.ru/proxy/type-10.htm
+        '''$http://samair.ru/proxy/type-11.htm
+        '''$http://samair.ru/proxy/type-12.htm
+        '''$http://samair.ru/proxy/type-1 [rest of string was truncated]&quot;;.
+        '''</summary>
+        Friend ReadOnly Property psrc2() As String
+            Get
+                Return ResourceManager.GetString("psrc2", resourceCulture)
+            End Get
+        End Property
     End Module
 End Namespace
